@@ -16,7 +16,7 @@ module Ahoy
         token = params[:id].to_s
         url = params[:url].to_s
         signature = params[:signature].to_s
-        expected_signature = OpenSSL::HMAC.hexdigest("SHA1", AhoyEmail::Utils.secret_token, url)
+        expected_signature = OpenSSL::HMAC.hexdigest('SHA1', AhoyEmail::Utils.secret_token, url)
       else
         token = params[:t].to_s
         campaign = params[:c].to_s
@@ -33,13 +33,15 @@ module Ahoy
         data[:controller] = self
         AhoyEmail::Utils.publish(:click, data)
 
-        redirect_to url
-      else
-        if AhoyEmail.invalid_redirect_url
-          redirect_to AhoyEmail.invalid_redirect_url
+        if url.match(%r{^https?://}).present?
+          redirect_to url
         else
-          render plain: "Link expired", status: :not_found
+          redirect_to "http://#{url}"
         end
+      elsif AhoyEmail.invalid_redirect_url
+        redirect_to AhoyEmail.invalid_redirect_url
+      else
+        render plain: 'Link expired', status: :not_found
       end
     end
   end
